@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
 import "./globals.css";
-
 import { ConvexClientProvider } from "./convex-client-provider";
+import { ClerkProvider } from "@clerk/nextjs";
+
 
 export const metadata: Metadata = {
   title: "Chatstarter",
@@ -15,9 +16,11 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <ConvexClientProvider>
-        <body>{children}</body>
-      </ConvexClientProvider>
+      <ClerkProvider dynamic>
+        <ConvexClientProvider>
+          <body>{children}</body>
+        </ConvexClientProvider>
+      </ClerkProvider>
     </html>
   );
 }
