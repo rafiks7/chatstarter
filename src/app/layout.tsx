@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import "./globals.css";
 import { ConvexClientProvider } from "./convex-client-provider";
 import { ClerkProvider } from "@clerk/nextjs";
+import { Toaster } from "../components/ui/sonner";
 
 
 export const metadata: Metadata = {
@@ -16,11 +17,14 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <ClerkProvider dynamic>
-        <ConvexClientProvider>
-          <body>{children}</body>
-        </ConvexClientProvider>
-      </ClerkProvider>
+      <body>
+        <ClerkProvider dynamic>
+          <ConvexClientProvider>
+            {children}
+            <Toaster />
+          </ConvexClientProvider>
+        </ClerkProvider>
+      </body>
     </html>
   );
 }
