@@ -80,6 +80,10 @@ type Message = FunctionReturnType<typeof api.functions.message.list>[number];
 function MessageItem({ message }: { message: Message }) {
   const user = useQuery(api.functions.user.get);
 
+  if (message.deleted && message.sender?._id !== user?._id) {
+    return null;
+  }
+
   return (
     <div className="flex items-center gap-2 px-4 py-2">
       <Avatar className="size-8 border">
@@ -94,15 +98,25 @@ function MessageItem({ message }: { message: Message }) {
         <p className="text-xs text-muted-foreground">
           {message.sender?.username ?? "Deleted User"}
         </p>
-        <p className="text-sm ">{message?.content}</p>
-        {message.attachment && (
-          <Image
-            src={message.attachment}
-            width={300}
-            height={300}
-            alt="Attachment"
-            className="rounded border overflow-hidden"
-          />
+        {message.deleted && message.sender?._id === user?._id ? (
+          <>
+            <p className="text-sm text-destructive">
+              This message was deleted for containing unsafe content.
+            </p>
+          </>
+        ) : (
+          <>
+            <p className="text-sm ">{message?.content}</p>
+            {message.attachment && (
+              <Image
+                src={message.attachment}
+                width={300}
+                height={300}
+                alt="Attachment"
+                className="rounded border overflow-hidden"
+              />
+            )}
+          </>
         )}
       </div>
       <MessageActions message={message} />
@@ -149,6 +163,7 @@ function MessageInput({
   const generateUploadUrl = useMutation(
     api.functions.message.generateUploadUrl
   );
+  const removeAttachment = useMutation(api.functions.storage.remove);
   const [attachment, setAttachment] = useState<Id<"_storage">>();
   const [file, setFile] = useState<File>();
   const [isUploading, setIsUploading] = useState(false);
@@ -197,7 +212,22 @@ function MessageInput({
           <span className="sr-only">Attach</span>
         </Button>
         <div className="flex flex-col flex-1 gap-2">
-          {file && <ImagePreview file={file} isUploading={isUploading} />}
+          {file && (
+            <ImagePreview
+              file={file}
+              isUploading={isUploading}
+              onDelete={() => {
+                if (attachment) {
+                  removeAttachment({ storageId: attachment });
+                }
+                setFile(undefined);
+                setAttachment(undefined);
+                if (fileInputRef.current) {
+                  fileInputRef.current.value = "";
+                }
+              }}
+            />
+          )}
           <Input
             placeholder="Message"
             value={content}
@@ -232,12 +262,14 @@ function MessageInput({
 function ImagePreview({
   file,
   isUploading,
+  onDelete,
 }: {
   file: File;
   isUploading: boolean;
+  onDelete: () => void;
 }) {
   return (
-    <div className="relative size-40 overflow-hidden rounder border">
+    <div className="relative size-40 overflow-hidden rounded border group">
       <Image
         src={URL.createObjectURL(file)}
         width={300}
@@ -249,6 +281,16 @@ function ImagePreview({
           <LoaderIcon className="animate-spin size-8" />
         </div>
       )}
+      <Button
+        type="button"
+        variant="destructive"
+        size="icon"
+        className="absolute top-2 right-2 group-hover:opacity-100 opacity-0 transition-opacity"
+        onClick={onDelete}
+      >
+        <TrashIcon />
+        <span className="sr-only">Delete</span>
+      </Button>
     </div>
   );
 }
