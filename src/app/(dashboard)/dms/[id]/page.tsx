@@ -19,7 +19,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { api } from "../../../../../convex/_generated/api";
 import { useMutation, useQuery } from "convex/react";
-import { use, useRef, useState } from "react";
+import { use, useEffect, useRef, useState } from "react";
 import { Id } from "../../../../../convex/_generated/dataModel";
 import { FunctionReturnType } from "convex/server";
 import { toast } from "sonner";
@@ -32,12 +32,29 @@ export default function MessagePage({
 }) {
   const { id } = use(params);
   const directMessage = useQuery(api.functions.dm.get, { id });
-
   const messages = useQuery(api.functions.message.list, { directMessage: id });
 
+
+  useEffect(() => {
+    const scrollRef = document.querySelector(
+      "[data-radix-scroll-area-viewport]"
+    );
+
+    // scroll to bottom
+    if (scrollRef) {
+      scrollRef.scrollTo({
+        top: scrollRef.scrollHeight,
+        behavior: "smooth",
+      });
+    }
+  }, [messages]);
+
+  
   if (!directMessage) {
     return null;
   }
+  
+
 
   return (
     <div className="flex flex-col flex-1 divide-y max-h-screen">
