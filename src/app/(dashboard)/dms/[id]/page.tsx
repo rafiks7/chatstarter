@@ -20,10 +20,9 @@ import {
 import { api } from "../../../../../convex/_generated/api";
 import { useMutation, useQuery } from "convex/react";
 import { use, useRef, useState } from "react";
-import { Doc, Id } from "../../../../../convex/_generated/dataModel";
+import { Id } from "../../../../../convex/_generated/dataModel";
 import { FunctionReturnType } from "convex/server";
 import { toast } from "sonner";
-import { useEffect } from "react";
 import Image from "next/image";
 
 export default function MessagePage({
