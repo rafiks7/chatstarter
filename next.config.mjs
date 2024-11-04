@@ -6,7 +6,7 @@ const nextConfig = {
         hostname: new URL(process.env.NEXT_PUBLIC_CONVEX_URL).hostname,
       },
     ],
-  }
+  },
 };
 
-module.exports = nextConfig;
+export default nextConfig;
