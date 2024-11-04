@@ -76,6 +76,87 @@ export const updateStatus = authenticatedMutation({
   },
 });
 
+export const clear = authenticatedMutation({
+  args: {
+    id: v.id("friends"),
+  },
+  handler: async (ctx, { id }) => {
+    const friend = await ctx.db.get(id);
+    if (!friend) {
+      throw new Error("Friend not found");
+    }
+    if (friend.user1 !== ctx.user._id && friend.user2 !== ctx.user._id) {
+      throw new Error("Not authorized");
+    }
+
+    console.log("Clearing friend relationship between:", friend.user1, friend.user2);
+
+    const directMessageMembersForUser1 = await ctx.db
+      .query("directMessageMembers")
+      .withIndex("by_user", (q) => q.eq("user", friend.user1))
+      .collect();
+
+    const directMessageMembersForUser2 = await ctx.db
+      .query("directMessageMembers")
+      .withIndex("by_user", (q) => q.eq("user", friend.user2))
+      .collect();
+
+    console.log("Found DM members for user1:", directMessageMembersForUser1);
+    console.log("Found DM members for user2:", directMessageMembersForUser2);
+
+    const sharedDirectMessageId = directMessageMembersForUser1.find(
+      (dm) =>
+        directMessageMembersForUser2.some(
+          (dm2) => dm2.directMessage === dm.directMessage
+        )
+    )?.directMessage;
+
+    console.log("Found shared DM ID:", sharedDirectMessageId);
+
+    // Delete the shared direct message if it exists
+    if (sharedDirectMessageId) {
+      const deleteDirectMessage = ctx.db.delete(sharedDirectMessageId);
+      const sharedDirectMessageMembers = await ctx.db
+      .query("directMessageMembers")
+      .withIndex("by_direct_message", (q) =>
+          q.eq("directMessage", sharedDirectMessageId)
+        )
+        .collect();
+
+      console.log("Found shared DM members to delete:", sharedDirectMessageMembers);
+
+      const deleteDirectMessageMembers = sharedDirectMessageMembers.map(dm => ctx.db.delete(dm._id));
+
+      const messages = await ctx.db
+        .query("messages")
+        .withIndex("by_direct_message", (q) =>
+          q.eq("directMessage", sharedDirectMessageId)
+        )
+        .collect();
+
+      console.log("Found messages to delete:", messages);
+
+      const deleteMessages = messages.map((m) => ctx.db.delete(m._id));
+    
+      console.log("Deleting:", {
+        directMessage: sharedDirectMessageId,
+        memberIds: sharedDirectMessageMembers.map(m => m._id),
+        messageIds: messages.map(m => m._id)
+      });
+
+      await Promise.all([
+        deleteDirectMessage,
+        ...deleteDirectMessageMembers,
+        ...deleteMessages,
+      ]);
+
+      console.log("Successfully deleted all related records");
+    } else {
+      throw new Error("No shared direct message found");
+    }
+  },
+});
+
 const mapWithUsers = async <
   K extends string,
   T extends { [key in K]: Id<"users"> },

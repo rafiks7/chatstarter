@@ -56,6 +56,7 @@ export function PendingFriendsList() {
 export function AcceptedFriendsList() {
   const friends = useQuery(api.functions.friend.listAccepted);
   const updateStatus = useMutation(api.functions.friend.updateStatus);
+  const clear = useMutation(api.functions.friend.clear);
   const router = useRouter();
 
   const createDirectMessage = useMutation(api.functions.dm.create);
@@ -99,6 +100,7 @@ export function AcceptedFriendsList() {
               icon={<XIcon />}
               onClick={() => {
                 updateStatus({ id: friend._id, status: "rejected" });
+                clear({ id: friend._id });
               }}
             />
           </FriendItem>
