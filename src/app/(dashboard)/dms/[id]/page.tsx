@@ -23,6 +23,7 @@ import { use, useRef, useState } from "react";
 import { Doc, Id } from "../../../../../convex/_generated/dataModel";
 import { FunctionReturnType } from "convex/server";
 import { toast } from "sonner";
+import { useEffect } from "react";
 import Image from "next/image";
 
 export default function MessagePage({
@@ -189,6 +190,10 @@ function MessageInput({
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     try {
+      const trimmedContent = content.trim();
+      if (trimmedContent.length === 0 && !attachment) {
+        return;
+      }
       await sendMessage({ content, attachment, directMessage });
       setContent("");
       setAttachment(undefined);
