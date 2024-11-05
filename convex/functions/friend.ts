@@ -49,11 +49,39 @@ export const createFriendRequest = authenticatedMutation({
     if (user._id === ctx.user._id) {
       throw new Error("Cannot friend yourself");
     }
-    await ctx.db.insert("friends", {
-      user1: ctx.user._id,
+
+    const existing = await ctx.db.query("friends").withIndex("by_user1_user2", (q) => q.eq("user1", ctx.user._id).eq("user2", user._id)).unique();
+    const existing2 = await ctx.db.query("friends").withIndex("by_user2_user1", (q) => q.eq("user2", ctx.user._id).eq("user1", user._id)).unique();
+
+    let freindRequest = null;
+
+    if (existing2){
+      freindRequest = existing2;
+    }
+    else if (existing) {
+      freindRequest = existing;
+    }
+    
+    if (freindRequest) {
+      if (freindRequest.status === "pending") {
+        throw new Error("Friend request already sent");
+      }
+      else if (freindRequest.status === "accepted") {
+        throw new Error("Friend already accepted");
+      }
+      else if (freindRequest.status === "rejected") {
+        await ctx.db.patch(freindRequest._id, {
+          status: "pending",
+        });
+      }
+    }
+    else {
+      await ctx.db.insert("friends", {
+        user1: ctx.user._id,
       user2: user._id,
-      status: "pending",
-    });
+        status: "pending",
+      });
+    }
   },
 });
 

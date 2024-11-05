@@ -19,7 +19,9 @@ export default defineSchema({
     ),
   })
     .index("by_user1_status", ["user1", "status"])
-    .index("by_user2_status", ["user2", "status"]),
+    .index("by_user2_status", ["user2", "status"])
+    .index("by_user1_user2", ["user1", "user2"])
+    .index("by_user2_user1", ["user2", "user1"]),
   directMessages: defineTable({}),
   directMessageMembers: defineTable({
     directMessage: v.id("directMessages"),
