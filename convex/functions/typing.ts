@@ -40,7 +40,12 @@ export const upsert = authenticatedMutation({
       .unique();
     const expireAt = Date.now() + 5000;
     if (existing) {
-      await ctx.db.patch(existing._id, { expireAt });
+      await ctx.db.patch(existing._id, { expireAt: expireAt });
+      await ctx.scheduler.runAt(expireAt, internal.functions.typing.remove, {
+        directMessage,
+        user: ctx.user._id,
+        expireAt,
+      });
       return existing._id;
     } else {
       const newIndicatorId = await ctx.db.insert("typingIndicators", {
