@@ -13,7 +13,7 @@ Visit Here: [Chatstarter](https://chatstarter.vercel.app)
 - **Next.js**: Framework for building the web application.
 - **TypeScript**: For improved type safety and maintainability.
 - **Tailwind CSS**: Utility-first CSS framework for styling.
-- **OpenAI API**: (Or similar AI platform) for generating conversation responses.
+- **Convex**: For real-time data synchronization and backend management.
 
 ## How to Use
 1. Clone the repository.
