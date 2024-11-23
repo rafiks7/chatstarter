@@ -53,9 +53,13 @@ export default function MessagePage({
   if (!directMessage) {
     return null;
   }
+
+  useEffect( () => {
+    console.log("directMessage", directMessage);
+    console.log("messages", messages);
+  }, [directMessage, messages]);
   
-
-
+  
   return (
     <div className="flex flex-col flex-1 divide-y max-h-screen">
       <header className="flex items-center gap-2 p-4">
